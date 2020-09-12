@@ -18,7 +18,7 @@ class ScssPhpMethodTest extends IntegrationTestCase
     public static function getComposerJson()
     {
         return parent::getComposerJson() + [
-            'name' => 'test/patch-test',
+            'name' => 'test/scss-php-method-test',
             'require' => [
                 'test/gnocchi' => '@dev',
             ],
@@ -41,11 +41,23 @@ class ScssPhpMethodTest extends IntegrationTestCase
 
         PH::runOk('COMPOSER_COMPILE=1 composer install -v');
 
+        $this->assertSameCssFile('vendor/test/gnocchi/build.css-expected', 'vendor/test/gnocchi/build.css');
+    }
+
+    /**
+     * @param string $expectedCssFile
+     * @param string $actualCssFile
+     *   Path to CSS file
+     */
+    public function assertSameCssFile($expectedCssFile, $actualCssFile)
+    {
         $normalize = function ($s) {
             return trim(preg_replace(';\s+;', ' ', $s));
         };
-        $actual = $normalize(file_get_contents('vendor/test/gnocchi/build.css'));
-        $expected = $normalize(file_get_contents('vendor/test/gnocchi/build.css-expected'));
+        $this->assertFileExists($actualCssFile);
+        $this->assertFileExists($expectedCssFile);
+        $actual = $normalize(file_get_contents($actualCssFile));
+        $expected = $normalize(file_get_contents($expectedCssFile));
         $this->assertNotEmpty($expected);
         $this->assertEquals($expected, $actual);
     }
