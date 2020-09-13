@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<extension key="org.example.gnocchi" type="module">
+  <file>gnocchi</file>
+  <name>gnocchi</name>
+  <description>Gnocchi</description>
+  <license>MIT</license>
+  <releaseDate>2020-01-01</releaseDate>
+  <version>1.0</version>
+  <develStage>stable</develStage>
+</extension>
