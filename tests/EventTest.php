@@ -37,12 +37,10 @@ class EventTest extends IntegrationTestCase
               [
                   'title' => 'Compile first',
                   'shell' => 'echo MARK: RUN FIRST',
-                  'passthru' => 'always',
               ],
               [
                   'title' => 'Compile second',
                   'shell' => 'echo MARK: RUN SECOND',
-                  'passthru' => 'always',
               ]
             ],
           ],
@@ -60,7 +58,7 @@ class EventTest extends IntegrationTestCase
      */
     public function testComposerInstall()
     {
-        $p = PH::runOk('COMPOSER_COMPILE=1 composer install');
+        $p = PH::runOk('COMPOSER_COMPILE_PASSTHRU=always COMPOSER_COMPILE=1 composer install');
         $expectLines = array_merge($this->startupLines(), [
             // First task
             "^MARK: PRE_COMPILE_TASK",
@@ -87,7 +85,7 @@ class EventTest extends IntegrationTestCase
 
     public function testDryRun()
     {
-        $p = PH::runOk('COMPOSER_COMPILE=1 composer compile --dry-run');
+        $p = PH::runOk('COMPOSER_COMPILE_PASSTHRU=always COMPOSER_COMPILE=1 composer compile --dry-run');
         $expectLines = array_merge($this->startupLines(), [
             // First task
             "^MARK: PRE_COMPILE_TASK",
