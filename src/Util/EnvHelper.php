@@ -43,4 +43,34 @@ class EnvHelper
             putenv("$key=$value");
         }
     }
+
+    /**
+     * Take a snapshot of the value (or non-value) of the given keys.
+     *
+     * @param array $keys
+     * @return array
+     */
+    public static function createSnapshot($keys)
+    {
+        $snapshot = [];
+        foreach ($keys as $key) {
+            if (getenv($key) !== false) {
+                $snapshot[] = "$key=" . getenv($key);
+            } else {
+                $snapshot[] = "$key";
+            }
+        }
+        return $snapshot;
+    }
+
+    /**
+     * @param array $snapshot
+     * @see createSnapshot
+     */
+    public static function restoreSnapshot($snapshot)
+    {
+        foreach ($snapshot as $varExpr) {
+            putenv($varExpr);
+        }
+    }
 }
