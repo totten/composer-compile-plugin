@@ -56,7 +56,7 @@ class CompilePlugin implements PluginInterface, EventSubscriberInterface, Capabl
         $this->io = $io;
         $dispatch = $composer->getEventDispatcher();
         $this->extraSubscribers = [
-            'shell' => new ShellSubscriber(),
+            'shell' => new ShellSubscriber($composer, $io),
             'php' => new PhpSubscriber(),
         ];
         $dispatch->addSubscriber($this->extraSubscribers['shell']);

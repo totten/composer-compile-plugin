@@ -6,10 +6,12 @@ use Civi\CompilePlugin\Event\CompileEvents;
 use Civi\CompilePlugin\Event\CompileListEvent;
 use Civi\CompilePlugin\Event\CompileTaskEvent;
 use Civi\CompilePlugin\Exception\TaskFailedException;
+use Civi\CompilePlugin\LazyEnvironment;
 use Civi\CompilePlugin\Task;
+use Civi\CompilePlugin\Util\ComposerIoTrait;
 use Civi\CompilePlugin\Util\ShellRunner;
 use Composer\EventDispatcher\EventSubscriberInterface;
-use Composer\IO\IOInterface;
+use Composer\Package\PackageInterface;
 
 class ShellSubscriber implements EventSubscriberInterface
 {
@@ -17,8 +19,44 @@ class ShellSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
+          CompileEvents::PRE_COMPILE_LIST => 'buildLazyEnv',
           CompileEvents::POST_COMPILE_LIST => 'applyDefaultCallback'
         ];
+    }
+
+    use ComposerIoTrait;
+
+    /**
+     * @var LazyEnvironment
+     */
+    protected $lazyEnv = null;
+
+    /**
+     * @return \Civi\CompilePlugin\LazyEnvironment
+     */
+    public function buildLazyEnv()
+    {
+        if ($this->lazyEnv) {
+            return;
+        }
+
+        $composer = $this->composer;
+        $installationManager = $composer->getInstallationManager();
+
+        $envVars = [];
+        $addPkgVar = function (PackageInterface $pkg, $path) use (&$envVars) {
+            list ($vName, $pName) = explode('/', $pkg->getName());
+            $key = 'PKG__' . preg_replace(';[^A-Z0-9_];', '_', strtoupper("{$vName}__{$pName}"));
+            $envVars[$key] = $path;
+        };
+
+        $envVars['PKG__ROOT'] = realpath('.');
+        $addPkgVar($composer->getPackage(), realpath('.'));
+        foreach ($composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages() as $package) {
+            $addPkgVar($package, $installationManager->getInstallPath($package));
+        }
+
+        $this->lazyEnv = new LazyEnvironment($envVars, '[A-Z0-9_]+');
     }
 
     /**
@@ -50,7 +88,9 @@ class ShellSubscriber implements EventSubscriberInterface
         $r = new ShellRunner($e->getComposer(), $e->getIO());
         $shellCmds = (array) $task->definition['shell'];
         foreach ($shellCmds as $shellCmd) {
-            $r->run($shellCmd);
+            $this->lazyEnv->wrap($shellCmd, function () use ($r, $shellCmd) {
+                $r->run($shellCmd);
+            });
         }
     }
 }
