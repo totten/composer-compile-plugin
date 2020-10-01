@@ -62,6 +62,7 @@ class TaskRunner
           'putenv' => new ComposerScriptHandler(),
           'php' => new ComposerScriptHandler(),
           'composer' => new ComposerScriptHandler(),
+          'snafu' => new PhpMethodHandler(),
         ];
         ksort($this->handlers);
         if (Task::HANDLERS !== implode('|', array_keys($this->handlers))) {
