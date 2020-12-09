@@ -20,6 +20,8 @@ class PackageSorter
      */
     public static function sortPackages($installedPackages)
     {
+        $start = microtime(1);
+
         // We do our own topological sort.  It doesn't seem particularly easy to ask composer for this list -- the
         // canonical sort for 'composer require' and 'composer update' have to address a lot of issues (like
         // version-selection and already-installed packages) that don't make sense here.
@@ -107,6 +109,18 @@ class PackageSorter
             }
         }
 
-        return array_keys($sortedPackages);
+        $result = array_keys($sortedPackages);
+        $end = microtime(1);
+
+        $getPkgName = function ($package) {
+            return $package->getName();
+        };
+        var_export([
+            'input' => array_map($getPkgName, $installedPackages),
+            'output' => $result,
+            'duration' => $end - $start,
+        ]);
+
+        return $result;
     }
 }
